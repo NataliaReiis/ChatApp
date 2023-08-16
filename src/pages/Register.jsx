@@ -1,8 +1,11 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react'; /* recolocar o UseEffects */
 import styled from "styled-components";
 import { Link } from 'react-router-dom';
 import Logo from "../assets/logo.svg";
 import {ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"
+import axios from "axios";
+import { registerRoute } from '../utils/APIRoutes';
 
 function Register() {
         const [values, setValues] = useState({
@@ -11,22 +14,47 @@ function Register() {
             password: "",
             confirmPassword: "",
         });
-    const handleSubmit = (event)=> {
-        event.proventDefault();
-        alert("form")
-    };
-
-    const hadleValidation = () => {
-        const {password, confirmPassword, username, email } = values;
-        if (password !== confirmPassword){
-            toast.error("As senhas precisam ser identicas em ambos com campos Senha e Confirmar senha ", {
-                position: "bottom-right",
-                autoClose: 8000,
-                pauseOnHover: true,
-                draggable: true,
-                theme: "dark",
+    
+        const toastOptions = {
+            position: "bottom-right",
+            autoClose: 8000,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "dark",
+        }
+        
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        if (handleValidation()) {
+            const {password,confirmPassword,username,email } = values;
+            const {data} = await axios.post(registerRoute, {
+                username,
+                email,
+                password,
             });
         }
+    };
+
+    const handleValidation = () => {
+        const {password,confirmPassword,username, email } = values;
+        if (password !== confirmPassword){
+            toast.error("As senhas precisam ser identicas", toastOptions 
+            );
+            return false;  
+        } else if(username.length < 3) {
+            toast.error("Username precisa conter mais de três carcteres", toastOptions
+            );
+            return false;
+        } else if (password.length < 8) {
+            toast.error("A senha precisa ter no min 8 caracteres", 
+            toastOptions
+            );
+            return false;
+        } else if (email === "") {
+            toast.error("email is required", toastOptions);
+            return false
+        }
+        return true;
     };
     const handleChange = (event) => {
         setValues({...values, [event.target.name]: event.target.value});
@@ -41,13 +69,13 @@ function Register() {
                     <h1>snappy</h1>
                 </div>
 
-                <input type="text" placeholder="Username" name="usuário" onChange={(e) => handleChange(e)} />
+                <input type="text" placeholder="Username" name="username" onChange={(e) => handleChange(e)} />
 
                 <input type="email" placeholder="Email" name="email" onChange={(e) => handleChange(e)} />
 
                 <input type="password" placeholder="Senha" name="password" onChange={(e) => handleChange(e)} />
 
-                <input type="Password" placeholder="Confirmar Senha" name="confirmPassword" onChange={(e) => handleChange(e)} />
+                <input type="password" placeholder="Confirmar Senha" name="confirmPassword" onChange={(e) => handleChange(e)} />
 
                 <button type="submit">Criar Usuario</button>
                 <span>Já possui conta? <Link to="/login">Login</Link></span>
